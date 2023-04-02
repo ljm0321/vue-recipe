@@ -2,7 +2,7 @@
     <div class="home">
         <li class="logo">Recipe</li>
         <li>안녕하세요. {{ userInfo.userId }}님!</li>
-        <li>{{ searchText }}</li>
+        <li>{{ homeText }}</li>
     </div>
 </template>
 
@@ -11,7 +11,7 @@ import { mapState } from 'vuex';
 
 export default {
     computed: {
-        ...mapState(['searchText', 'userInfo'])
+        ...mapState(['homeText', 'userInfo'])
     }
 }
 </script>

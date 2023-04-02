@@ -8,16 +8,20 @@ export default new Vuex.Store({
     state: () => ({
         loading: false,
         recipeRecent: [],
-        recipeSearch: [],
+        recipeaSearch: [],
         recipeDetail: {},
         searchText: '궁금한 레시피를 검색하세요:D',
+        homeText: '궁금한 레시피를 검색하세요:D',
         userInfo: {
             userId: 'ljm',
             userEmail: 'ljm@gmail.com',
             tel1: '111',
             tel2: '1111',
             tel3: '1111',
-        }
+        },
+        totalCount: 0,
+        recipeName: '',
+        recipeIngre: ''
     }),
     mutations: {
         updateState(state, payload) {
@@ -59,7 +63,8 @@ export default new Vuex.Store({
             if (state.loading) {
                 commit('updateState', {
                     loading: true,
-                    searchText: ''
+                    searchText: '',
+                    totalCount: 0
                 })
             }
 
@@ -68,13 +73,16 @@ export default new Vuex.Store({
                     ...payload
                 });
                 const Search = res.data.COOKRCP01.row; 
+                const TotalCount = res.data.COOKRCP01.total_count; 
                 commit('updateState', {
-                    recipeSearch: Search
+                    recipeaSearch: Search,
+                    totalCount: TotalCount
                 })
             } catch {
                 commit('updateState', {
-                    recipeSearch: [],
-                    searchText: '궁금한 레시피를 검색하세요:D'
+                    recipeaSearch: [],
+                    searchText: '궁금한 레시피를 검색하세요:D',
+                    totalCount: 0
                 })
             } finally {
                 commit('updateState', {
@@ -108,20 +116,43 @@ export default new Vuex.Store({
                     loading: false
                 })
             }
-        }
+        },
+        async search_recipe_more ({ state, commit }) {
+            try {
+                const res = await axios.get(`http://openapi.foodsafetykorea.go.kr/api/633cf2b1076d464f90c4/COOKRCP01/json/1/${state.totalCount}/RCP_PARTS_DTLS=${state.recipeIngre}&RCP_NM=${state.recipeName}`)
+                const Search = res.data.COOKRCP01.row; 
+                commit('updateState', {
+                    recipeaSearch: Search,
+                })
+            } catch {
+                commit('updateState', {
+                    recipeaSearch: [],
+                    searchText: '궁금한 레시피를 검색하세요:D',
+                })
+            } finally {
+                commit('updateState', {
+                    searchText: ''
+                })
+            }
+        }, 
+        
     },
-    getters: {}
+    getters: {
+        moreCount(state) {
+            return state.totalCount - 5;
+        }
+    }
 })
 
 function fetch_recipe(payload) {
-    const { RCP_NM, RCP_PARTS_DTLS, CHNG_DT } = payload;
+    const { RCP_NM, RCP_PARTS_DTLS, CHNG_DT, endIdx } = payload;
     // const apiKey = '633cf2b1076d464f90c4';
-    const apiKey = 'sample';
+    const apiKey = '633cf2b1076d464f90c4';
     let apiUrl = '';
     if (CHNG_DT) {
         apiUrl = `http://openapi.foodsafetykorea.go.kr/api/${apiKey}/COOKRCP01/json/1/5/CHNG_DT=${CHNG_DT}`
-    } else if (RCP_NM && RCP_PARTS_DTLS) {
-        apiUrl = `http://openapi.foodsafetykorea.go.kr/api/${apiKey}/COOKRCP01/json/1/50/RCP_PARTS_DTLS=${RCP_PARTS_DTLS}&RCP_NM=${RCP_NM}`
+    } else if (endIdx && RCP_NM && RCP_PARTS_DTLS) {
+        apiUrl = `http://openapi.foodsafetykorea.go.kr/api/${apiKey}/COOKRCP01/json/1/${endIdx}/RCP_PARTS_DTLS=${RCP_PARTS_DTLS}&RCP_NM=${RCP_NM}`
     } else {
         apiUrl = `http://openapi.foodsafetykorea.go.kr/api/${apiKey}/COOKRCP01/json/1/5/RCP_NM=${RCP_NM}`
     }
