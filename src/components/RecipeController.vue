@@ -32,7 +32,7 @@ export default {
         }
     },
     methods: {
-        async searchRecipe() {
+        searchRecipe() {
             if (this.recipeName === ''){
                 this.recipeName = '""'
             }
